@@ -994,21 +994,6 @@ func TestBlockStatementProgram(t *testing.T) {
 	}
 }
 
-// 获取一个 LetStatement 实例
-func getLetStatement(name string, value string) *LetStatement {
-	return &LetStatement{
-		Token: token.Token{Type: token.LET, Literal: "let"},
-		Name: &Identifier{
-			Token: token.Token{Type: token.IDENTIFIER, Literal: name},
-			Value: name,
-		},
-		Value: &Identifier{
-			Token: token.Token{Type: token.IDENTIFIER, Literal: value},
-			Value: value,
-		},
-	}
-}
-
 // 获取一个 BlockStatement 实例
 func getBlockStatement() *BlockStatement {
 	return &BlockStatement{
@@ -1047,6 +1032,36 @@ func getBlockStatement() *BlockStatement {
 	}
 }
 
+// 获取一个 LetStatement 实例
+func getLetStatement(name string, value string) *LetStatement {
+	return &LetStatement{
+		Token: token.Token{Type: token.LET, Literal: "let"},
+		Name: &Identifier{
+			Token: token.Token{Type: token.IDENTIFIER, Literal: name},
+			Value: name,
+		},
+		Value: &Identifier{
+			Token: token.Token{Type: token.IDENTIFIER, Literal: value},
+			Value: value,
+		},
+	}
+}
+
+// 测试 Expression
+func testExpression(t *testing.T, exps []expressions) bool {
+	for _, expression := range exps {
+		if expression.expression.TokenLiteral() != expression.expectedLiteral {
+			t.Errorf("Expression wrong, expectedLiteral=%q, got=%q",
+				expression.expectedLiteral, expression.expression.TokenLiteral())
+		}
+		if expression.expression.String() != expression.expectedString {
+			t.Errorf("Expression wrong, expectedString=%q, got=%q",
+				expression.expectedString, expression.expression.String())
+		}
+	}
+	return false
+}
+
 // 测试 Statement
 func testStatement(t *testing.T, sts []statements) bool {
 	for _, st := range sts {
@@ -1068,21 +1083,6 @@ func testProgram(t *testing.T, ps []programs) bool {
 		if p.program.String() != p.expectedString {
 			t.Errorf("Statement wrong, expected=%q, got=%q",
 				p.expectedString, p.program.String())
-		}
-	}
-	return false
-}
-
-// 测试 Expression
-func testExpression(t *testing.T, exps []expressions) bool {
-	for _, expression := range exps {
-		if expression.expression.TokenLiteral() != expression.expectedLiteral {
-			t.Errorf("Expression wrong, expectedLiteral=%q, got=%q",
-				expression.expectedLiteral, expression.expression.TokenLiteral())
-		}
-		if expression.expression.String() != expression.expectedString {
-			t.Errorf("Expression wrong, expectedString=%q, got=%q",
-				expression.expectedString, expression.expression.String())
 		}
 	}
 	return false
