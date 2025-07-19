@@ -3,6 +3,7 @@ GO = go
 
 # 存放程序入口文件（如 main.go）的目录
 SRC_DIR = ./main.go
+EXEC_PREFIX = ./
 
 # 检测操作系统类型
 ifeq ($(OS),Windows_NT)
@@ -30,7 +31,7 @@ clean:
 
 # 运行目标，编译并执行程序
 run: build
-	./$(BINARY_NAME)
+	$(EXEC_PREFIX)$(BINARY_NAME)
 
 # 安装依赖目标
 deps:
