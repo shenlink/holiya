@@ -8,8 +8,8 @@ SRC_DIR = ./main.go
 ifeq ($(OS),Windows_NT)
     # 输出的二进制文件名
     BINARY_NAME = holiya.exe
-    # Windows 环境使用 del 命令删除文件
-    REMOVE_CMD = del /f /q
+    # Windows 环境使用 del 命令删除文件（通过 cmd 执行）
+    REMOVE_CMD = cmd /c del /f /q
 else
     # 输出的二进制文件名
     BINARY_NAME = holiya
