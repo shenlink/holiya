@@ -228,3 +228,8 @@ func (p *Parser) nextToken() {
 	p.currToken = p.peekToken
 	p.peekToken = p.l.NextToken()
 }
+
+// 添加错误信息到错误列表
+func (p *Parser) appendError(errorMessage string) {
+	p.errors = append(p.errors, errorMessage)
+}
