@@ -1,9 +1,11 @@
 package parser
 
 import (
+	"fmt"
 	"holiya/ast"
 	"holiya/lexer"
 	"holiya/token"
+	"strconv"
 )
 
 const (
@@ -152,7 +154,17 @@ func (p *Parser) parseIdentifier() ast.Expression {
 // 解析整数
 // 注意：解析整数时，使用int64存储整数值
 func (p *Parser) parseIntegerLiteral() ast.Expression {
-	return nil
+	value, err := strconv.ParseInt(p.currToken.Literal, 0, 64)
+	if err != nil {
+		msg := fmt.Sprintf("could not parse %s as integer", p.currToken.Literal)
+		p.appendError(msg)
+		return nil
+	}
+
+	literal := &ast.IntegerLiteral{Token: p.currToken}
+	literal.Value = value
+
+	return literal
 }
 
 // 解析浮点数
