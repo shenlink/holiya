@@ -170,7 +170,17 @@ func (p *Parser) parseIntegerLiteral() ast.Expression {
 // 解析浮点数
 // 注意：解析浮点数时，使用float64存储浮点数数值
 func (p *Parser) parseFloatLiteral() ast.Expression {
-	return nil
+	value, err := strconv.ParseFloat(p.currToken.Literal, 64)
+	if err != nil { 
+		msg := fmt.Sprintf("could not parse %s as float", p.currToken.Literal)
+		p.appendError(msg)
+		return nil
+	}
+
+	literal := &ast.FloatLiteral{Token: p.currToken}
+	literal.Value = value
+
+	return literal
 }
 
 // 实现Expression接口的方法

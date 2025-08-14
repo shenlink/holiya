@@ -140,3 +140,104 @@ func TestParseIntegerLiteral(t *testing.T) {
 		}
 	}
 }
+
+
+// 测试 parseIntegerLiteral
+func TestParseFloatLiteral(t *testing.T) {
+	tests := []struct {
+		tokenLiteral  string
+		expectedValue float64
+		expectedString string
+		expectError   bool
+	}{
+		{
+			tokenLiteral:  "123.456",
+			expectedValue: 123.456,
+			expectedString: "123.456",
+			expectError:   false,
+		},
+		{
+			tokenLiteral:  "0.0",
+			expectedValue: 0.0,
+			expectedString: "0.0",
+			expectError:   false,
+		},
+		{
+			tokenLiteral:  "-456.789",
+			expectedValue: -456.789,
+			expectedString: "-456.789",
+			expectError:   false,
+		},
+		{
+			tokenLiteral:  "3.141592653589793",
+			expectedValue: 3.141592653589793,
+			expectedString: "3.141592653589793",
+			expectError:   false,
+		},
+		{
+			tokenLiteral:  "10000000000",
+			expectedValue: 10000000000,
+			expectedString: "10000000000",
+			expectError:   false,
+		},
+		{
+			tokenLiteral:  "0.000123",
+			expectedValue: 0.000123,
+			expectedString: "0.000123",
+			expectError:   false,
+		},
+		{
+			tokenLiteral:  "abc",
+			expectedValue: 0,
+			expectedString: "",
+			expectError:   true,
+		},
+		{
+			tokenLiteral:  "",
+			expectedValue: 0,
+			expectedString: "",
+			expectError:   true,
+		},
+	}
+
+	for _, tt := range tests {
+		tok := token.Token{
+			Type:    token.FLOAT,
+			Literal: tt.tokenLiteral,
+		}
+		parser := &Parser{
+			currToken: tok,
+			errors:    []string{},
+		}
+		result := parser.parseFloatLiteral()
+		if tt.expectError {
+			if len(parser.errors) == 0 {
+				t.Errorf("expected error for input %s, but got none", tt.tokenLiteral)
+			}
+			if result != nil {
+				t.Errorf("expected nil result for invalid input %s, but got %T", tt.tokenLiteral, result)
+			}
+			continue
+		}
+
+		// 验证没有错误
+		if len(parser.errors) > 0 {
+			t.Errorf("unexpected error for input %s: %v", tt.tokenLiteral, parser.errors)
+			continue
+		}
+
+		floatLiteral, ok := result.(*ast.FloatLiteral)
+		if !ok {
+			t.Fatalf("parseFloatLiteral() returned wrong type. Expected *ast.FloatLiteral, got %T", result)
+		}
+		if floatLiteral.TokenLiteral() != tt.tokenLiteral {
+			t.Errorf("floatLiteral.TokenLiteral() = %v, want %v", floatLiteral.TokenLiteral(), tt.tokenLiteral)
+		}
+		if floatLiteral.String() != tt.expectedString {
+			t.Errorf("floatLiteral.TokenLiteral() = %v, want %v", floatLiteral.String(), tt.expectedString)
+		}
+		if floatLiteral.Value != tt.expectedValue {
+			t.Errorf("floatLiteral.Value = %v, want %v", floatLiteral.Value, tt.expectedValue)
+		}
+	}
+}
