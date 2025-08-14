@@ -183,9 +183,9 @@ func (p *Parser) parseFloatLiteral() ast.Expression {
 	return literal
 }
 
-// 实现Expression接口的方法
+// 解析字符串表达式
 func (p *Parser) parseStringLiteral() ast.Expression {
-	return nil
+	return &ast.StringLiteral{Token: p.currToken, Value: p.currToken.Literal}
 }
 
 // 解析前缀表达式

@@ -241,3 +241,54 @@ func TestParseFloatLiteral(t *testing.T) {
 		}
 	}
 }
+
+// 测试 parseStringLiteral 函数
+func TestParseStringLiteral(t *testing.T) {
+	tests := []struct {
+		tokenLiteral  string
+		expectedValue string
+	}{
+		{
+			tokenLiteral:  "hello world",
+			expectedValue: "hello world",
+		},
+		{
+			tokenLiteral:  "",
+			expectedValue: "",
+		},
+		{
+			tokenLiteral:  "123",
+			expectedValue: "123",
+		},
+		{
+			tokenLiteral:  "foo_bar",
+			expectedValue: "foo_bar",
+		},
+		{
+			tokenLiteral:  "hello\nworld",
+			expectedValue: "hello\nworld",
+		},
+	}
+
+	// 执行测试用例
+	for _, tt := range tests {
+		tok := token.Token{
+			Type:    token.STRING,
+			Literal: tt.tokenLiteral,
+		}
+		parser := &Parser{
+			currToken: tok,
+		}
+		result := parser.parseStringLiteral()
+		stringLiteral, ok := result.(*ast.StringLiteral)
+		if !ok {
+			t.Fatalf("parseStringLiteral() returned wrong type. Expected *ast.StringLiteral, got %T", result)
+		}
+		if stringLiteral.TokenLiteral() != tt.tokenLiteral {
+			t.Errorf("stringLiteral.TokenLiteral() = %v, want %v", stringLiteral.TokenLiteral(), tt.tokenLiteral)
+		}
+		if stringLiteral.String() != tt.expectedValue {
+			t.Errorf("stringLiteral.String() = %v, want %v", stringLiteral.String(), tt.expectedValue)
+		}
+	}
+}
