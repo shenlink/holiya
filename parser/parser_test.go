@@ -6,7 +6,7 @@ import (
 	"testing"
 )
 
-// 测试 parseIdentifier
+// 测试 parseIdentifier 函数
 func TestParseIdentifier(t *testing.T) {
 	tests := []struct {
 		tokenType     token.TokenType
@@ -58,7 +58,7 @@ func TestParseIdentifier(t *testing.T) {
 	}
 }
 
-// 测试 TestParseIntegerLiteral
+// 测试 parseIntegerLiteral 函数
 func TestParseIntegerLiteral(t *testing.T) {
 	tests := []struct {
 		tokenLiteral  string
