@@ -190,12 +190,88 @@ func (p *Parser) parseStringLiteral() ast.Expression {
 
 // 解析前缀表达式
 func (p *Parser) parsePrefixExpression() ast.Expression {
-	return nil
+	// 当前token是前缀运算符 '-' 和 '!'
+	expression := &ast.PrefixExpression{Token: p.currToken, Operator: p.currToken.Literal}
+
+	// 跳过 '!' 和 '-'
+	p.nextToken()
+
+	// 解析 '!' 和 '-' 后面的表达式
+	expression.Right = p.parseExpression(LOWEST)
+
+	return expression
+}
+
+// 解析表达式
+func (p *Parser) parseExpression(precedence int) ast.Expression {
+	// 获取前缀表达式的解析函数
+	// 注意：这里的表达式对应的token不只是只有 '-' 和 '!'
+	prefix := p.prefixParseFns[p.currToken.Type]
+	if prefix == nil {
+		p.noPrefixParseFnError(p.currToken.Type)
+		return nil
+	}
+
+	// 解析前缀表达式
+	leftExpression := prefix()
+
+	for !p.peekTokenIs(token.SEMICOLON) && precedence < p.peekPrecedence() {
+		infix := p.infixParseFns[p.peekToken.Type]
+		if infix == nil {
+			return leftExpression
+		}
+		// 跳过中缀运算符
+		p.nextToken()
+		// 解析中缀表达式、
+		// 这里为什么要赋值给leftExpression呢？
+		// 有这种情况：5 + 3 - 2
+		// + 和 - 是同优先级的运算符，当当前token是5时，会调用前缀表达式解析
+		// 函数 parseIntegerLiteral 解析token 5，接着是判断
+		// !p.peekTokenIs(token.SEMICOLON) && precedence < p.peekPrecedence()
+		// 如果符合的，那获取中缀运算符解析函数，这里是有的，+ 运算符的解析函数是
+		// parseInfixExpression，解析完成后之后，那就获取解析结果，并赋值给 leftExpression，
+		// 然后是 - 运算符，还是符合 !p.peekTokenIs(token.SEMICOLON) && precedence < p.peekPrecedence()，
+		// 所以，还是会进入这一段循环，解析出 x - 2 表达式
+		leftExpression = infix(leftExpression)
+	}
+	return leftExpression
+}
+
+// 没有前缀表达式解析函数错误
+func (p *Parser) noPrefixParseFnError(t token.TokenType) {
+	msg := fmt.Sprintf("no prefix parse function for %s found", t)
+	p.errors = append(p.errors, msg)
+}
+
+// 获取当前token的优先级，在precedences中匹配不到的话就是最低优先级
+func (p *Parser) currPrecedence() int {
+	if p, ok := precedences[p.currToken.Type]; ok {
+		return p
+	}
+	return LOWEST
+}
+
+// 辅助函数，判断当前token的类型与给出的token的类型是否相等
+func (p *Parser) currTokenIs(t token.TokenType) bool {
+	return p.currToken.Type == t
+}
+
+// 获取下一个token的优先级，在precedences中匹配不到的话就是最低优先级
+func (p *Parser) peekPrecedence() int {
+	if p, ok := precedences[p.peekToken.Type]; ok {
+		return p
+	}
+	return LOWEST
+}
+
+// 辅助函数，判断下一个token的类型与给出的token的类型是否相等
+func (p *Parser) peekTokenIs(t token.TokenType) bool {
+	return t == p.peekToken.Type
 }
 
 // 解析bool值
 func (p *Parser) parseBoolean() ast.Expression {
-	return nil
+	return &ast.Boolean{Token: p.currToken, Value: p.currTokenIs(token.TRUE)}
 }
 
 // 解析()
@@ -232,7 +308,20 @@ func (p *Parser) registerInfix(tokenType token.TokenType, fn infixParseFn) {
 // 解析中缀表达式
 // 参数是中缀运算符的左边的表达式
 func (p *Parser) parseInfixExpression(left ast.Expression) ast.Expression {
-	return nil
+	expression := &ast.InfixExpression{
+		Token: p.currToken,
+		Left: left,
+		Operator: p.currToken.Literal,
+	}
+
+	// 获取当前token的优先级
+	precedence := p.currPrecedence()
+	// 跳过中缀运算符
+	p.nextToken()
+	// 解析中缀运算符右边的表达式
+	expression.Right = p.parseExpression(precedence)
+
+	return expression
 }
 
 // 解析调用表达式

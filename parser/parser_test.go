@@ -2,6 +2,7 @@ package parser
 
 import (
 	"holiya/ast"
+	"holiya/lexer"
 	"holiya/token"
 	"testing"
 )
@@ -289,6 +290,230 @@ func TestParseStringLiteral(t *testing.T) {
 		}
 		if stringLiteral.String() != tt.expectedValue {
 			t.Errorf("stringLiteral.String() = %v, want %v", stringLiteral.String(), tt.expectedValue)
+		}
+	}
+}
+
+// 测试 parsePrefixExpression 函数
+func TestParsePrefixExpression(t *testing.T) {
+	tests := []struct {
+		input          string
+		token          token.Token
+		operator       string
+		operatorType   token.TokenType
+		rightLiteral   string
+		rightType      token.TokenType
+		expectedString string
+	}{
+		{
+			input:          "!true",
+			token:          token.Token{Type: token.BAND, Literal: "!"},
+			operator:       "!",
+			operatorType:   token.BAND,
+			rightLiteral:   "true",
+			rightType:      token.FALSE,
+			expectedString: "(!true)",
+		},
+		{
+			input:          "!false",
+			token:          token.Token{Type: token.BAND, Literal: "!"},
+			operator:       "!",
+			operatorType:   token.BAND,
+			rightLiteral:   "false",
+			rightType:      token.TRUE,
+			expectedString: "(!false)",
+		},
+		{
+			input:          "-10",
+			token:          token.Token{Type: token.MINUS, Literal: "-"},
+			operator:       "-",
+			operatorType:   token.MINUS,
+			rightLiteral:   "10",
+			rightType:      token.INT,
+			expectedString: "(-10)",
+		},
+	}
+
+	for _, tt := range tests {
+		l := lexer.New(tt.input)
+		parser := New(l)
+		result := parser.parsePrefixExpression()
+		prefixExpression, ok := result.(*ast.PrefixExpression)
+		if !ok {
+			t.Fatalf("parsePrefixExpression() returned wrong type. Expected *ast.PrefixExpression, got %T", result)
+		}
+
+		if prefixExpression.Token != tt.token {
+			t.Errorf("prefixExpression.Token = %v, want %v", prefixExpression.Token, tt.token)
+		}
+
+		if prefixExpression.Operator != tt.operator {
+			t.Errorf("prefixExpression.Operator = %v, want %v", prefixExpression.Operator, tt.operator)
+		}
+
+		if prefixExpression.Right.TokenLiteral() != tt.rightLiteral {
+			t.Errorf("prefixExpression..Right.TokenLiteral() = %v, want %v", prefixExpression.Operator, tt.rightLiteral)
+		}
+
+		if prefixExpression.String() != tt.expectedString {
+			t.Errorf("prefixExpression.String() = %v, want %v", prefixExpression.String(), tt.expectedString)
+		}
+	}
+}
+
+// 测试 parseExpression 函数
+func TestParseExpression(t *testing.T) {
+	tests := []struct {
+		input          string
+		token          token.Token
+		operator       string
+		operatorType   token.TokenType
+		rightLiteral   string
+		rightType      token.TokenType
+		expectedString string
+	}{
+		{
+			input:          "!true",
+			token:          token.Token{Type: token.BAND, Literal: "!"},
+			operator:       "!",
+			operatorType:   token.BAND,
+			rightLiteral:   "true",
+			rightType:      token.FALSE,
+			expectedString: "(!true)",
+		},
+		{
+			input:          "!false",
+			token:          token.Token{Type: token.BAND, Literal: "!"},
+			operator:       "!",
+			operatorType:   token.BAND,
+			rightLiteral:   "false",
+			rightType:      token.TRUE,
+			expectedString: "(!false)",
+		},
+		{
+			input:          "-10",
+			token:          token.Token{Type: token.MINUS, Literal: "-"},
+			operator:       "-",
+			operatorType:   token.MINUS,
+			rightLiteral:   "10",
+			rightType:      token.INT,
+			expectedString: "(-10)",
+		},
+	}
+
+	for _, tt := range tests {
+		l := lexer.New(tt.input)
+		parser := New(l)
+		result := parser.parseExpression(PREFIX)
+		prefixExpression, ok := result.(*ast.PrefixExpression)
+		if !ok {
+			t.Fatalf("parsePrefixExpression() returned wrong type. Expected *ast.PrefixExpression, got %T", result)
+		}
+
+		if prefixExpression.Token != tt.token {
+			t.Errorf("prefixExpression.Token = %v, want %v", prefixExpression.Token, tt.token)
+		}
+
+		if prefixExpression.Operator != tt.operator {
+			t.Errorf("prefixExpression.Operator = %v, want %v", prefixExpression.Operator, tt.operator)
+		}
+
+		if prefixExpression.Right.TokenLiteral() != tt.rightLiteral {
+			t.Errorf("prefixExpression..Right.TokenLiteral() = %v, want %v", prefixExpression.Operator, tt.rightLiteral)
+		}
+
+		if prefixExpression.String() != tt.expectedString {
+			t.Errorf("prefixExpression.String() = %v, want %v", prefixExpression.String(), tt.expectedString)
+		}
+	}
+}
+
+// 测试 noPrefixParseFnError 函数
+func TestNoPrefixParseFnError(t *testing.T) {
+	parser := Parser{}
+	parser.noPrefixParseFnError(token.BAND)
+	if len(parser.errors) != 1 {
+		t.Errorf("parser.errors = %v, want 1", parser.errors)
+	}
+	if parser.errors[0] != "no prefix parse function for ! found" {
+		t.Errorf("parser.errors[0] = %v, want 'no prefix parse function for BAND found'", parser.errors[0])
+	}
+}
+
+// 测试 peekTokenIs 函数
+func TestPeekTokenIs(t *testing.T) {
+	l := lexer.New("!true")
+	parser := New(l)
+	if !parser.peekTokenIs(token.TRUE) {
+		t.Errorf("parser.peekTokenIs(token.TRUE) = true, want false")
+	}
+}
+
+// 测试 currPrecedence 函数
+func TestCurrPrecedence(t *testing.T) {
+	tests := []struct {
+		input      string
+		expected   int
+	}{
+		{"=", LOWEST},
+		{"==", EQUALS},
+		{"!=", EQUALS},
+		{"+", SUM},
+		{"-", SUM},
+		{"*", PRODUCT},
+		{"/", PRODUCT},
+		{"<", LESSGREATER},
+		{">", LESSGREATER},
+		{"(", CALL},
+		{"[", INDEX},
+	}
+
+	for _, tt := range tests {
+		l := lexer.New(tt.input)
+		parser := New(l)
+		
+		actual := parser.currPrecedence()
+		if actual != tt.expected {
+			t.Errorf("currPrecedence() for input %q = %d, want %d", tt.input, actual, tt.expected)
+		}
+	}
+}
+
+// 测试 parseBoolean 函数
+func TestParseBoolean(t *testing.T) { 
+	tests := []struct {
+		tokenLiteral  string
+		expectedValue bool
+		expectedString string
+	}{
+		{
+			tokenLiteral: "true",
+			expectedValue: true,
+			expectedString: "true",
+		},
+		{
+			tokenLiteral:  "false",
+			expectedValue: false,
+			expectedString: "false",
+		},
+	}
+
+	for _, tt := range tests {
+		l := lexer.New(tt.tokenLiteral)
+		parser := New(l)
+		result := parser.parseBoolean()
+		booleanLiteral, ok := result.(*ast.Boolean)
+		if !ok {
+			t.Fatalf("parseBoolean() returned wrong type. Expected *ast.Boolean, got %T", result)
+		}
+		if booleanLiteral.TokenLiteral() != tt.tokenLiteral {
+			t.Errorf("booleanLiteral.TokenLiteral() = %v, want %v", booleanLiteral.TokenLiteral(), tt.tokenLiteral)
+		}
+		if booleanLiteral.Value != tt.expectedValue {
+			t.Errorf("integerLiteral.Value = %v, want %v", booleanLiteral.Value, tt.expectedValue)
+		}
+		if booleanLiteral.String() != tt.expectedString {
+			t.Errorf("booleanLiteral.String() = %v, want %v", booleanLiteral.String(), tt.expectedString)
 		}
 	}
 }
