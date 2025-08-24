@@ -171,7 +171,7 @@ func (p *Parser) parseIntegerLiteral() ast.Expression {
 // 注意：解析浮点数时，使用float64存储浮点数数值
 func (p *Parser) parseFloatLiteral() ast.Expression {
 	value, err := strconv.ParseFloat(p.currToken.Literal, 64)
-	if err != nil { 
+	if err != nil {
 		msg := fmt.Sprintf("could not parse %s as float", p.currToken.Literal)
 		p.appendError(msg)
 		return nil
@@ -309,8 +309,8 @@ func (p *Parser) registerInfix(tokenType token.TokenType, fn infixParseFn) {
 // 参数是中缀运算符的左边的表达式
 func (p *Parser) parseInfixExpression(left ast.Expression) ast.Expression {
 	expression := &ast.InfixExpression{
-		Token: p.currToken,
-		Left: left,
+		Token:    p.currToken,
+		Left:     left,
 		Operator: p.currToken.Literal,
 	}
 

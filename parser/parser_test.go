@@ -62,41 +62,41 @@ func TestParseIdentifier(t *testing.T) {
 // 测试 parseIntegerLiteral 函数
 func TestParseIntegerLiteral(t *testing.T) {
 	tests := []struct {
-		tokenLiteral  string
-		expectedValue int64
+		tokenLiteral   string
+		expectedValue  int64
 		expectedString string
-		expectError   bool
+		expectError    bool
 	}{
 		{
-			tokenLiteral: "123",
-			expectedValue: 123,
+			tokenLiteral:   "123",
+			expectedValue:  123,
 			expectedString: "123",
-			expectError:   false,
+			expectError:    false,
 		},
 		{
-			tokenLiteral:  "0",
-			expectedValue: 0,
+			tokenLiteral:   "0",
+			expectedValue:  0,
 			expectedString: "0",
-			expectError:   false,
+			expectError:    false,
 		},
 		{
-			tokenLiteral:  "-456",
-			expectedValue: -456,
+			tokenLiteral:   "-456",
+			expectedValue:  -456,
 			expectedString: "-456",
-			expectError:   false,
+			expectError:    false,
 		},
 		{
 			// int64最大值
-			tokenLiteral:  "9223372036854775807",
-			expectedValue: 9223372036854775807,
+			tokenLiteral:   "9223372036854775807",
+			expectedValue:  9223372036854775807,
 			expectedString: "9223372036854775807",
-			expectError:   false,
+			expectError:    false,
 		},
 		{
-			tokenLiteral:  "abc",
-			expectedValue: 0,
+			tokenLiteral:   "abc",
+			expectedValue:  0,
 			expectedString: "",
-			expectError:   true,
+			expectError:    true,
 		},
 	}
 
@@ -142,62 +142,61 @@ func TestParseIntegerLiteral(t *testing.T) {
 	}
 }
 
-
 // 测试 parseIntegerLiteral
 func TestParseFloatLiteral(t *testing.T) {
 	tests := []struct {
-		tokenLiteral  string
-		expectedValue float64
+		tokenLiteral   string
+		expectedValue  float64
 		expectedString string
-		expectError   bool
+		expectError    bool
 	}{
 		{
-			tokenLiteral:  "123.456",
-			expectedValue: 123.456,
+			tokenLiteral:   "123.456",
+			expectedValue:  123.456,
 			expectedString: "123.456",
-			expectError:   false,
+			expectError:    false,
 		},
 		{
-			tokenLiteral:  "0.0",
-			expectedValue: 0.0,
+			tokenLiteral:   "0.0",
+			expectedValue:  0.0,
 			expectedString: "0.0",
-			expectError:   false,
+			expectError:    false,
 		},
 		{
-			tokenLiteral:  "-456.789",
-			expectedValue: -456.789,
+			tokenLiteral:   "-456.789",
+			expectedValue:  -456.789,
 			expectedString: "-456.789",
-			expectError:   false,
+			expectError:    false,
 		},
 		{
-			tokenLiteral:  "3.141592653589793",
-			expectedValue: 3.141592653589793,
+			tokenLiteral:   "3.141592653589793",
+			expectedValue:  3.141592653589793,
 			expectedString: "3.141592653589793",
-			expectError:   false,
+			expectError:    false,
 		},
 		{
-			tokenLiteral:  "10000000000",
-			expectedValue: 10000000000,
+			tokenLiteral:   "10000000000",
+			expectedValue:  10000000000,
 			expectedString: "10000000000",
-			expectError:   false,
+			expectError:    false,
 		},
 		{
-			tokenLiteral:  "0.000123",
-			expectedValue: 0.000123,
+			tokenLiteral:   "0.000123",
+			expectedValue:  0.000123,
 			expectedString: "0.000123",
-			expectError:   false,
+			expectError:    false,
 		},
 		{
-			tokenLiteral:  "abc",
-			expectedValue: 0,
+			tokenLiteral:   "abc",
+			expectedValue:  0,
 			expectedString: "",
-			expectError:   true,
+			expectError:    true,
 		},
 		{
-			tokenLiteral:  "",
-			expectedValue: 0,
+			tokenLiteral:   "",
+			expectedValue:  0,
 			expectedString: "",
-			expectError:   true,
+			expectError:    true,
 		},
 	}
 
@@ -452,8 +451,8 @@ func TestPeekTokenIs(t *testing.T) {
 // 测试 currPrecedence 函数
 func TestCurrPrecedence(t *testing.T) {
 	tests := []struct {
-		input      string
-		expected   int
+		input    string
+		expected int
 	}{
 		{"=", LOWEST},
 		{"==", EQUALS},
@@ -471,7 +470,7 @@ func TestCurrPrecedence(t *testing.T) {
 	for _, tt := range tests {
 		l := lexer.New(tt.input)
 		parser := New(l)
-		
+
 		actual := parser.currPrecedence()
 		if actual != tt.expected {
 			t.Errorf("currPrecedence() for input %q = %d, want %d", tt.input, actual, tt.expected)
@@ -480,20 +479,20 @@ func TestCurrPrecedence(t *testing.T) {
 }
 
 // 测试 parseBoolean 函数
-func TestParseBoolean(t *testing.T) { 
+func TestParseBoolean(t *testing.T) {
 	tests := []struct {
-		tokenLiteral  string
-		expectedValue bool
+		tokenLiteral   string
+		expectedValue  bool
 		expectedString string
 	}{
 		{
-			tokenLiteral: "true",
-			expectedValue: true,
+			tokenLiteral:   "true",
+			expectedValue:  true,
 			expectedString: "true",
 		},
 		{
-			tokenLiteral:  "false",
-			expectedValue: false,
+			tokenLiteral:   "false",
+			expectedValue:  false,
 			expectedString: "false",
 		},
 	}

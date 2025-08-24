@@ -124,8 +124,8 @@ func (sl *StringLiteral) String() string {
 // 包含左右操作数和操作符
 type InfixExpression struct {
 	// 操作符，比如+，-
-	Token    token.Token
-	Left     Expression
+	Token token.Token
+	Left  Expression
 	// 操作符
 	Operator string
 	Right    Expression
@@ -156,7 +156,7 @@ func (p *InfixExpression) String() string {
 // 包含前缀操作符和右边的操作数
 type PrefixExpression struct {
 	// 前缀操作符，比如-，！
-	Token    token.Token
+	Token token.Token
 	// 前缀操作符
 	Operator string
 	Right    Expression
