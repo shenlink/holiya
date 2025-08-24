@@ -516,3 +516,46 @@ func TestParseBoolean(t *testing.T) {
 		}
 	}
 }
+
+// 测试 parseGroupedExpression 函数
+func TestParseGroupedExpression(t *testing.T) {
+	tests := []struct {
+		input          string
+		expectedString string
+	}{
+		{
+			input:          "(1)",
+			expectedString: "1",
+		},
+		{
+			input:          "(x)",
+			expectedString: "x",
+		},
+		{
+			input:          "(true)",
+			expectedString: "true",
+		},
+		{
+			input:          "(false)",
+			expectedString: "false",
+		},
+		{
+			input:          "(1 + 2)",
+			expectedString: "(1 + 2)",
+		},
+	}
+
+	for _, tt := range tests {
+		l := lexer.New(tt.input)
+		parser := New(l)
+		result := parser.parseGroupedExpression()
+		if result == nil {
+			t.Errorf("parseGroupedExpression() returned nil for input %q", tt.input)
+			continue
+		}
+		if result.String() != tt.expectedString {
+			t.Errorf("parseGroupedExpression() for input %q = %v, want %v", 
+				tt.input, result.String(), tt.expectedString)
+		}
+	}
+}

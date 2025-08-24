@@ -276,7 +276,19 @@ func (p *Parser) parseBoolean() ast.Expression {
 
 // 解析()
 func (p *Parser) parseGroupedExpression() ast.Expression {
-	return nil
+	// 跳过(
+	p.nextToken()
+
+	// 解析括号中的表达式
+	expression := p.parseExpression(LOWEST)
+
+	// 如果不是以)结尾，则报错
+	if !p.peekTokenIs(token.RPAREN) {
+		p.errors = append(p.errors, "expected )")
+		return nil
+	}
+
+	return expression
 }
 
 // 解析if
