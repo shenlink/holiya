@@ -555,7 +555,7 @@ func TestParseGroupedExpression(t *testing.T) {
 			continue
 		}
 		if result.String() != tt.expectedString {
-			t.Errorf("parseGroupedExpression() for input %q = %v, want %v", 
+			t.Errorf("parseGroupedExpression() for input %q = %v, want %v",
 				tt.input, result.String(), tt.expectedString)
 		}
 	}
