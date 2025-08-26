@@ -293,7 +293,158 @@ func (p *Parser) parseGroupedExpression() ast.Expression {
 
 // 解析if
 func (p *Parser) parseIfExpression() ast.Expression {
-	return nil
+	// 当前token是if
+	expression := &ast.IfExpression{Token: p.currToken}
+
+	// 验证下一个token是不是(
+	if !p.expectPeek(token.LPAREN) {
+		return nil
+	}
+	// 解析if()中的条件表达式
+	expression.Condition = p.parseExpression(LOWEST)
+	// 验证下一个token是不是)
+	if !p.expectPeek(token.RPAREN) {
+		return nil
+	}
+
+	// 验证下一个token是不是{
+	if !p.expectPeek(token.LBRACE) {
+		return nil
+	}
+	// 解析块语句
+	expression.Consequence = p.parseBlockStatement()
+	// 验证当前token是不是}
+	if !p.currTokenIs(token.RBRACE) {
+		p.appendError(fmt.Sprintf("expected }, but got %s", p.currToken.Type))
+		return nil
+	}
+
+	// 验证下一个token是不是else
+	if p.peekTokenIs(token.ELSE) {
+		// 跳过}，跳过之后，当前token就是else了
+		p.nextToken()
+		// 验证下一个token是不是{
+		if !p.expectPeek(token.LBRACE) {
+			return nil
+		}
+		// 解析块语句
+		expression.Alternative = p.parseBlockStatement()
+		// 验证当前token是不是}
+		if !p.currTokenIs(token.RBRACE) {
+			p.appendError(fmt.Sprintf("expected }, but got %s", p.currToken.Type))
+			return nil
+		}
+	}
+
+	return expression
+}
+
+// 解析块语句，块语句就是在if-else和函数体中的语句
+func (p *Parser) parseBlockStatement() *ast.BlockStatement {
+	// 创建块语句
+	block := &ast.BlockStatement{Token: p.currToken}
+
+	// 初始化块语句的语句列表，go语言中，切片不初始化，直接append会panic
+	block.Statements = []ast.Statement{}
+
+	// 跳过{
+	p.nextToken()
+
+	// 如果当前token不是}或是EOF，则继续解析语句
+	for !p.currTokenIs(token.RBRACE) && !p.currTokenIs(token.EOF) {
+		// 解析语句，在holiya中，语句只有let语句，return语句和表达式语句
+		statement := p.parseStatement()
+		// statement可能会返回空
+		if statement != nil {
+			// 添加语句
+			block.Statements = append(block.Statements, statement)
+		}
+		// 跳过每个语句的结尾，来到下一个语句的开头
+		p.nextToken()
+	}
+	return block
+}
+
+// 解析语句
+func (p *Parser) parseStatement() ast.Statement {
+	switch p.currToken.Type {
+	case token.LET:
+		// 解析let语句
+		return p.parseLetStatement()
+	case token.RETURN:
+		// 解析return语句
+		return p.parseReturnStatement()
+	default:
+		// 解析表达式语句
+		return p.parseExpressionStatement()
+	}
+}
+
+// 解析let语句
+func (p *Parser) parseLetStatement() *ast.LetStatement {
+	// 当前token是let
+	statement := &ast.LetStatement{Token: p.currToken}
+
+	// 如果下一个token不是标识符，则记录错误并返回nil
+	if !p.expectPeek(token.IDENTIFIER) {
+		return nil
+	}
+
+	// 创建标识符
+	statement.Name = &ast.Identifier{Token: p.currToken, Value: p.currToken.Literal}
+
+	// 如果下一个token不是=，则记录错误并返回nil
+	if !p.expectPeek(token.ASSIGN) {
+		return nil
+	}
+
+	// 跳过=
+	p.nextToken()
+
+	// 解析表达式，并保存到statement中
+	statement.Value = p.parseExpression(LOWEST)
+
+	// 如果下一个token不是;，则记录错误并返回
+	if !p.expectPeek(token.SEMICOLON) {
+		return nil
+	}
+
+	return statement
+}
+
+// 解析return语句
+func (p *Parser) parseReturnStatement() *ast.ReturnStatement {
+	// 创建return语句
+	statement := &ast.ReturnStatement{Token: p.currToken}
+
+	// 跳过return关键字
+	p.nextToken()
+
+	// 解析表达式
+	statement.ReturnValue = p.parseExpression(LOWEST)
+
+	// 如果下一个token不是;，则记录错误并返回nil
+	if !p.expectPeek(token.SEMICOLON) {
+		return nil
+	}
+
+	return statement
+}
+
+// 表达式语句，类似foobar;
+func (p *Parser) parseExpressionStatement() *ast.ExpressionStatement {
+	// 创建表达式语句
+	statement := &ast.ExpressionStatement{Token: p.currToken}
+
+	// 解析表达式
+	statement.Expression = p.parseExpression(LOWEST)
+
+	// 如果下一个token不是;，则记录错误并返回nil
+	if !p.expectPeek(token.SEMICOLON) {
+		return nil
+	}
+
+	return statement
 }
 
 // 解析函数
@@ -355,4 +506,22 @@ func (p *Parser) nextToken() {
 // 添加错误信息到错误列表
 func (p *Parser) appendError(errorMessage string) {
 	p.errors = append(p.errors, errorMessage)
+}
+
+// 判断下一个token与给出的token的类型是否相等，相等的话，跳过当前token
+// 如果不相等，则调价错误信息，并返回false
+func (p *Parser) expectPeek(t token.TokenType) bool {
+	if p.peekTokenIs(t) {
+		p.nextToken()
+		return true
+	}
+	p.peekError(t)
+	return false
+}
+
+// append错误信息
+// 注意：词法解析应该要尽量得搜集更多的错误
+func (p *Parser) peekError(t token.TokenType) {
+	msg := fmt.Sprintf("expected next token to be %s, got %s instead", t, p.peekToken.Type)
+	p.appendError(msg)
 }
