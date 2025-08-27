@@ -449,7 +449,69 @@ func (p *Parser) parseExpressionStatement() *ast.ExpressionStatement {
 
 // 解析函数
 func (p *Parser) parseFunctionLiteral() ast.Expression {
-	return nil
+	// 创建函数表达式
+	fnExpression := &ast.FunctionLiteral{Token: p.currToken}
+
+	// 如果下一个token不是(，则记录错误并返回nil
+	if !p.expectPeek(token.LPAREN) {
+		return nil
+	}
+
+	// 解析函数的参数列表
+	parameters := p.parseFunctionParameters()
+
+	// 如果参数列表为nil，则返回nil
+	if parameters == nil {
+		return nil
+	}
+
+	fnExpression.Parameters = parameters
+
+	// 如果下一个token不是{，则记录错误并返回nil
+	if !p.expectPeek(token.LBRACE) {
+		return nil
+	}
+
+	// 解析函数的函数体
+	fnExpression.Body = p.parseBlockStatement()
+
+	return fnExpression
+}
+
+func (p *Parser) parseFunctionParameters() []*ast.Identifier {
+	// 创建一个空数组，用于存储参数列表
+	identifiers := []*ast.Identifier{}
+
+	// 如果没有参数，则返回空数组
+	if p.peekTokenIs(token.RPAREN) {
+		p.nextToken()
+		return identifiers
+	}
+
+	// 跳过(
+	p.nextToken()
+
+	// 第一个参数
+	identifier := &ast.Identifier{Token: p.currToken, Value: p.currToken.Literal}
+	identifiers = append(identifiers, identifier)
+
+	// 如果下一个token是,，则继续解析下一个参数
+	for p.peekTokenIs(token.COMMA) {
+		// 跳过当前参数所在的token
+		p.nextToken()
+		// 跳过,
+		p.nextToken()
+		// 添加参数
+		identifier := &ast.Identifier{Token: p.currToken, Value: p.currToken.Literal}
+		identifiers = append(identifiers, identifier)
+	}
+
+	// 如果下一个token不是)，则记录错误并返回nil
+	if !p.expectPeek(token.RPAREN) {
+		return nil
+	}
+
+	return identifiers
 }
 
 // 解析数组

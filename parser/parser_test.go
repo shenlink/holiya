@@ -1273,3 +1273,131 @@ func TestPeekError(t *testing.T) {
 		t.Errorf("parser.errors[0] = %v, want 'expected next token to be FALSE, got TRUE instead'", parser.errors[0])
 	}
 }
+
+// 测试 parseFunctionLiteral 函数
+func TestParseFunctionLiteral(t *testing.T) {
+	tests := []struct {
+		input              string
+		expectedParameters []string
+		expectedBody       string
+		expectError        bool
+	}{
+		{
+			input:              "fn() {}",
+			expectedParameters: []string{},
+			expectedBody:       "",
+			expectError:        false,
+		},
+		{
+			input:              "fn(x) {}",
+			expectedParameters: []string{"x"},
+			expectedBody:       "",
+			expectError:        false,
+		},
+		{
+			input:              "fn(x, y, z) {}",
+			expectedParameters: []string{"x", "y", "z"},
+			expectedBody:       "",
+			expectError:        false,
+		},
+		{
+			input:              "fn() { x; }",
+			expectedParameters: []string{},
+			expectedBody:       "x",
+			expectError:        false,
+		},
+		{
+			input:              "fn() { return x; }",
+			expectedParameters: []string{},
+			expectedBody:       "return x;",
+			expectError:        false,
+		},
+		{
+			input:              "fn(x) { return x; }",
+			expectedParameters: []string{"x"},
+			expectedBody:       "return x;",
+			expectError:        false,
+		},
+		{
+			input:              "fn(x, y) { return x + y; }",
+			expectedParameters: []string{"x", "y"},
+			expectedBody:       "return (x + y);",
+			expectError:        false,
+		},
+		// 错误情况测试 - 缺少参数右括号
+		{
+			input:              "fn(x {}",
+			expectedParameters: nil,
+			expectedBody:       "",
+			expectError:        true,
+		},
+		{
+			input:              "fn(x, y {}",
+			expectedParameters: nil,
+			expectedBody:       "",
+			expectError:        true,
+		},
+		// 错误情况测试 - 缺少函数体左大括号
+		{
+			input:              "fn(x) return x; }",
+			expectedParameters: nil,
+			expectedBody:       "",
+			expectError:        true,
+		},
+	}
+
+	for _, tt := range tests {
+		l := lexer.New(tt.input)
+		parser := New(l)
+		result := parser.parseFunctionLiteral()
+
+		if tt.expectError {
+			if len(parser.errors) == 0 {
+				t.Errorf("expected error for input %s, but got none", tt.input)
+			}
+			if result != nil {
+				t.Errorf("expected nil result for invalid input %s, but got %T", tt.input, result)
+			}
+			continue
+		}
+
+		// 验证没有错误
+		if len(parser.errors) > 0 {
+			t.Errorf("unexpected error for input %s: %v", tt.input, parser.errors)
+			continue
+		}
+
+		functionLiteral, ok := result.(*ast.FunctionLiteral)
+		if !ok {
+			t.Fatalf("parseFunctionLiteral() returned wrong type. Expected *ast.FunctionLiteral, got %T", result)
+		}
+
+		if len(functionLiteral.Parameters) != len(tt.expectedParameters) {
+			t.Errorf("functionLiteral.Parameters length = %d, want %d", len(functionLiteral.Parameters), len(tt.expectedParameters))
+			continue
+		}
+
+		for i, expectedParam := range tt.expectedParameters {
+			if functionLiteral.Parameters[i].String() != expectedParam {
+				t.Errorf("functionLiteral.Parameters[%d].String() = %v, want %v", i, functionLiteral.Parameters[i].String(), expectedParam)
+			}
+		}
+
+		if tt.expectedBody != "" {
+			if len(functionLiteral.Body.Statements) == 0 {
+				t.Errorf("expected function body, but got empty body")
+				continue
+			}
+			bodyStr := functionLiteral.Body.String()
+			// 移除大括号以匹配期望的字符串
+			// bodyStr = bodyStr[1 : len(bodyStr)-1] // 去掉首尾的大括号
+			// bodyStr = bodyStr[1:]                 // 去掉第一个空格
+
+			if bodyStr != tt.expectedBody {
+				t.Errorf("functionLiteral.Body.String() = %v, want %v", bodyStr, tt.expectedBody)
+			}
+		} else if len(functionLiteral.Body.Statements) > 0 {
+			t.Errorf("expected empty function body, but got %v", functionLiteral.Body.String())
+		}
+	}
+}
