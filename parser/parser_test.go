@@ -1274,6 +1274,19 @@ func TestPeekError(t *testing.T) {
 	}
 }
 
+// 测试 Errors 函数
+func TestErrors(t *testing.T) {
+	l := lexer.New("!true")
+	parser := New(l)
+	parser.peekError(token.FALSE)
+	if len(parser.Errors()) == 0 {
+		t.Error("expected 1 error, but got 0")
+	}
+	if parser.Errors()[0] != "expected next token to be FALSE, got TRUE instead" {
+		t.Errorf("parser.errors[0] = %v, want 'expected next token to be FALSE, got TRUE instead'", parser.errors[0])
+	}
+}
+
 // 测试 parseFunctionLiteral 函数
 func TestParseFunctionLiteral(t *testing.T) {
 	tests := []struct {

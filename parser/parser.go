@@ -711,3 +711,8 @@ func (p *Parser) peekError(t token.TokenType) {
 	msg := fmt.Sprintf("expected next token to be %s, got %s instead", t, p.peekToken.Type)
 	p.appendError(msg)
 }
+
+// Errors 辅助函数 返回token解析的错误
+func (p *Parser) Errors() []string {
+	return p.errors
+}
