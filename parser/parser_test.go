@@ -1495,3 +1495,113 @@ func TestParseArrayLiteral(t *testing.T) {
 		}
 	}
 }
+
+// 测试 parseHashLiteral 函数
+func TestParseHashLiteral(t *testing.T) {
+	tests := []struct {
+		input              string
+		expectedPairsCount int
+		expectError        bool
+	}{
+		{
+			input:              "{}",
+			expectedPairsCount: 0,
+			expectError:        false,
+		},
+		{
+			input:              `{"one": 1}`,
+			expectedPairsCount: 1,
+			expectError:        false,
+		},
+		{
+			input:              `{"one": 1, "two": 2, "three": 3}`,
+			expectedPairsCount: 3,
+			expectError:        false,
+		},
+		{
+			input:              `{"one": 1, "two": 2, "three": 3,}`,
+			expectedPairsCount: 3,
+			expectError:        false,
+		},
+		{
+			input:              "{x: y}",
+			expectedPairsCount: 1,
+			expectError:        false,
+		},
+		{
+			input:              "{x: 1, y: 2}",
+			expectedPairsCount: 2,
+			expectError:        false,
+		},
+		{
+			input:              "{x: 1, y: 2, z: 3}",
+			expectedPairsCount: 3,
+			expectError:        false,
+		},
+		{
+			input:              "{x: y, 1: 2}",
+			expectedPairsCount: 2,
+			expectError:        false,
+		},
+		{
+			input:              "{fn(x) { x; }: 10}",
+			expectedPairsCount: 1,
+			expectError:        false,
+		},
+		{
+			input:              "{[1, 2]: 10}",
+			expectedPairsCount: 1,
+			expectError:        false,
+		},
+		// 错误情况测试 - 缺少冒号
+		{
+			input:              "{one 1}",
+			expectedPairsCount: 0,
+			expectError:        true,
+		},
+		// 错误情况测试 - 缺少右大括号
+		{
+			input:              `{"one": 1`,
+			expectedPairsCount: 0,
+			expectError:        true,
+		},
+		// 错误情况测试 - 缺少键值对之间的逗号
+		{
+			input:              `{"one": 1 "two": 2}`,
+			expectedPairsCount: 0,
+			expectError:        true,
+		},
+	}
+
+	for _, tt := range tests {
+		l := lexer.New(tt.input)
+		parser := New(l)
+		result := parser.parseHashLiteral()
+
+		if tt.expectError {
+			if len(parser.errors) == 0 {
+				t.Errorf("expected error for input %s, but got none", tt.input)
+			}
+			if result != nil {
+				t.Errorf("expected nil result for invalid input %s, but got %T", tt.input, result)
+			}
+			continue
+		}
+
+		// 验证没有错误
+		if len(parser.errors) > 0 {
+			t.Errorf("unexpected error for input %s: %v", tt.input, parser.errors)
+			continue
+		}
+
+		hashLiteral, ok := result.(*ast.HashLiteral)
+		if !ok {
+			t.Fatalf("parseHashLiteral() returned wrong type. Expected *ast.HashLiteral, got %T", result)
+		}
+
+		if len(hashLiteral.Pairs) != tt.expectedPairsCount {
+			t.Errorf("hashLiteral.Pairs length = %d, want %d for input %s", len(hashLiteral.Pairs), tt.expectedPairsCount, tt.input)
+			continue
+		}
+	}
+}

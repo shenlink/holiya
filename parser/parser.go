@@ -569,7 +569,40 @@ func (p *Parser) parseExpressionList(end token.TokenType) []ast.Expression {
 
 // 解析哈希（键值对）
 func (p *Parser) parseHashLiteral() ast.Expression {
-	return nil
+	// 创建哈希表达式
+	hashExpression := &ast.HashLiteral{Token: p.currToken}
+
+	// 创建一个空map，用于存储键值对
+	hashExpression.Pairs = make(map[ast.Expression]ast.Expression)
+
+	// 如果下一个token不是}，继续解析
+	for !p.peekTokenIs(token.RBRACE) {
+		// 跳过第一个token { 或,
+		p.nextToken()
+		// 解析键
+		key := p.parseExpression(LOWEST)
+		// 如果下一个token不是:，则记录错误并返回nil
+		if !p.expectPeek(token.COLON) {
+			return nil
+		}
+		// 跳过:
+		p.nextToken()
+		// 解析值
+		value := p.parseExpression(LOWEST)
+		// 添加键值对
+		hashExpression.Pairs[key] = value
+		// 如果下一个token不是},，则记录错误并返回nil
+		if !p.peekTokenIs(token.RBRACE) && !p.peekTokenIs(token.COMMA) {
+			p.appendError("Expected comma or right brace after hash pair")
+			return nil
+		}
+		// 跳过,
+		if p.peekTokenIs(token.COMMA) {
+			p.nextToken()
+		}
+	}
+
+	return hashExpression
 }
 
 // 注册中缀表达式
