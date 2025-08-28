@@ -140,6 +140,21 @@ func New(l *lexer.Lexer) *Parser {
 	return p
 }
 
+// ParseProgram 解析Program
+func (p *Parser) ParseProgram() *ast.Program {
+	program := &ast.Program{}
+	program.Statements = []ast.Statement{}
+
+	for !p.currTokenIs(token.EOF) {
+		stmt := p.parseStatement()
+		if stmt != nil {
+			program.Statements = append(program.Statements, stmt)
+		}
+		p.nextToken()
+	}
+	return program
+}
+
 // 注册前缀表达式
 // 注册identifier，int，float，string，!，-，true，false，(，if，fn，[，{
 func (p *Parser) registerPrefix(tokenType token.TokenType, fn prefixParseFn) {

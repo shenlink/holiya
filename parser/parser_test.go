@@ -1799,3 +1799,180 @@ func TestParseIndexExpression(t *testing.T) {
 		}
 	}
 }
+
+// 测试 ParseProgram 函数
+func TestParseProgram(t *testing.T) {
+	tests := []struct {
+		input              string
+		expectedStatements []string
+		expectError        bool
+	}{
+		{
+			input:              "",
+			expectedStatements: []string{},
+			expectError:        false,
+		},
+		{
+			input:              "let x = 5;",
+			expectedStatements: []string{"let x = 5;"},
+			expectError:        false,
+		},
+		{
+			input:              "return 10;",
+			expectedStatements: []string{"return 10;"},
+			expectError:        false,
+		},
+		{
+			input:              "x + y;",
+			expectedStatements: []string{"(x + y)"},
+			expectError:        false,
+		},
+		{
+			input:              "let x = 5; let y = 10;",
+			expectedStatements: []string{"let x = 5;", "let y = 10;"},
+			expectError:        false,
+		},
+		{
+			input:              "return 10; return 20;",
+			expectedStatements: []string{"return 10;", "return 20;"},
+			expectError:        false,
+		},
+		{
+			input:              "x; y; z;",
+			expectedStatements: []string{"x", "y", "z"},
+			expectError:        false,
+		},
+		{
+			input:              "let x = 5; return x; x + 10;",
+			expectedStatements: []string{"let x = 5;", "return x;", "(x + 10)"},
+			expectError:        false,
+		},
+		{
+			input:              "let x = 5; let y = 10; let z = x + y; return z;",
+			expectedStatements: []string{"let x = 5;", "let y = 10;", "let z = (x + y);", "return z;"},
+			expectError:        false,
+		},
+		// 错误情况测试 - let语句缺少标识符
+		{
+			input:              "let = 5;",
+			expectedStatements: []string{},
+			expectError:        true,
+		},
+		// 错误情况测试 - let语句缺少赋值操作符
+		{
+			input:              "let x 5;",
+			expectedStatements: []string{},
+			expectError:        true,
+		},
+		// 错误情况测试 - let语句缺少分号
+		{
+			input:              "let x = 5",
+			expectedStatements: []string{},
+			expectError:        true,
+		},
+		// 错误情况测试 - return语句缺少分号
+		{
+			input:              "return 5",
+			expectedStatements: []string{},
+			expectError:        true,
+		},
+		// 错误情况测试 - 表达式语句缺少分号
+		{
+			input:              "x + y",
+			expectedStatements: []string{},
+			expectError:        true,
+		},
+		// 错误情况测试 - 函数字面量缺少左括号
+		{
+			input:              "let fn = fn;",
+			expectedStatements: []string{},
+			expectError:        true,
+		},
+		// 错误情况测试 - 函数调用缺少右括号
+		{
+			input:              "fn(1, 2;",
+			expectedStatements: []string{},
+			expectError:        true,
+		},
+		// 错误情况测试 - 数组字面量缺少右括号
+		{
+			input:              "let arr = [1, 2, 3;",
+			expectedStatements: []string{},
+			expectError:        true,
+		},
+		// 错误情况测试 - 哈希字面量缺少右大括号
+		{
+			input:              "let hash = {\"key\": \"value\";",
+			expectedStatements: []string{},
+			expectError:        true,
+		},
+		// 错误情况测试 - 索引表达式缺少右括号
+		{
+			input:              "arr[0;",
+			expectedStatements: []string{},
+			expectError:        true,
+		},
+		// 错误情况测试 - 分组表达式缺少右括号
+		{
+			input:              "(1 + 2;",
+			expectedStatements: []string{},
+			expectError:        true,
+		},
+		// 错误情况测试 - if表达式缺少条件左括号
+		{
+			input:              "if x < 5 { x; }",
+			expectedStatements: []string{},
+			expectError:        true,
+		},
+		// 错误情况测试 - if表达式缺少条件右括号
+		{
+			input:              "if (x < 5 { x; }",
+			expectedStatements: []string{},
+			expectError:        true,
+		},
+		// 错误情况测试 - if表达式缺少左大括号
+		{
+			input:              "if (x < 5) x;",
+			expectedStatements: []string{},
+			expectError:        true,
+		},
+	}
+
+	for _, tt := range tests {
+		l := lexer.New(tt.input)
+		parser := New(l)
+		program := parser.ParseProgram()
+
+		if tt.expectError {
+			if len(parser.errors) == 0 {
+				t.Errorf("expected error for input %s, but got none", tt.input)
+			}
+			// 注意：即使有错误，program 也不会是 nil，它仍然会包含已成功解析的部分
+			continue
+		}
+
+		// 验证没有错误
+		if len(parser.errors) > 0 {
+			t.Errorf("unexpected error for input %s: %v", tt.input, parser.errors)
+			continue
+		}
+
+		if program == nil {
+			t.Fatalf("ParseProgram() returned nil for input %s", tt.input)
+		}
+
+		if len(program.Statements) != len(tt.expectedStatements) {
+			t.Errorf("program.Statements length = %d, want %d for input %s",
+				len(program.Statements), len(tt.expectedStatements), tt.input)
+			continue
+		}
+
+		for i, expectedStmt := range tt.expectedStatements {
+			actualStmt := program.Statements[i].String()
+			if actualStmt != expectedStmt {
+				t.Errorf("program.Statements[%d].String() = %v, want %v for input %s",
+					i, actualStmt, expectedStmt, tt.input)
+			}
+		}
+	}
+}
