@@ -220,7 +220,7 @@ func (p *Parser) parseExpression(precedence int) ast.Expression {
 		if infix == nil {
 			return leftExpression
 		}
-		// 跳过中缀运算符
+		// 跳到中缀运算符
 		p.nextToken()
 		// 解析中缀表达式、
 		// 这里为什么要赋值给leftExpression呢？
