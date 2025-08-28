@@ -632,7 +632,17 @@ func (p *Parser) parseInfixExpression(left ast.Expression) ast.Expression {
 
 // 解析调用表达式
 func (p *Parser) parseCallExpression(function ast.Expression) ast.Expression {
-	return nil
+	// 创建调用表达式
+	callExpression := &ast.CallExpression{Token: p.currToken, Function: function}
+
+	// 解析参数列表
+	arguments := p.parseExpressionList(token.RPAREN)
+	if arguments == nil {
+		return nil
+	}
+	callExpression.Arguments = arguments
+
+	return callExpression
 }
 
 // 解析index表达式

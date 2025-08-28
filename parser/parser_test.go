@@ -1605,3 +1605,102 @@ func TestParseHashLiteral(t *testing.T) {
 		}
 	}
 }
+
+// 测试 parseCallExpression 函数
+func TestParseCallExpression(t *testing.T) {
+	tests := []struct {
+		input             string
+		expectedCallee    string
+		expectedArgsCount int
+		expectError       bool
+	}{
+		{
+			input:             "add();",
+			expectedCallee:    "add",
+			expectedArgsCount: 0,
+			expectError:       false,
+		},
+		{
+			input:             "add(1);",
+			expectedCallee:    "add",
+			expectedArgsCount: 1,
+			expectError:       false,
+		},
+		{
+			input:             "add(1, 2);",
+			expectedCallee:    "add",
+			expectedArgsCount: 2,
+			expectError:       false,
+		},
+		{
+			input:             "add(x, y);",
+			expectedCallee:    "add",
+			expectedArgsCount: 2,
+			expectError:       false,
+		},
+		{
+			input:             "add(1 + 2, 3 * 4);",
+			expectedCallee:    "add",
+			expectedArgsCount: 2,
+			expectError:       false,
+		},
+		{
+			input:             "fn(x) { x; }(1);",
+			expectedCallee:    "fn(x)x",
+			expectedArgsCount: 1,
+			expectError:       false,
+		},
+		{
+			input:             "add(1, 2, 3, 4, 5);",
+			expectedCallee:    "add",
+			expectedArgsCount: 5,
+			expectError:       false,
+		},
+		// 错误情况测试 - 缺少右括号
+		{
+			input:             "add(1, 2;",
+			expectedCallee:    "",
+			expectedArgsCount: 0,
+			expectError:       true,
+		},
+	}
+
+	for _, tt := range tests {
+		l := lexer.New(tt.input)
+		parser := New(l)
+
+		// 解析整个表达式
+		expression := parser.parseExpression(LOWEST)
+
+		if tt.expectError {
+			if len(parser.errors) == 0 {
+				t.Errorf("expected error for input %s, but got none", tt.input)
+			}
+			if expression != nil {
+				t.Errorf("expected nil expression for invalid input %s, but got %T", tt.input, expression)
+			}
+			continue
+		}
+
+		// 验证没有错误
+		if len(parser.errors) > 0 {
+			t.Errorf("unexpected error for input %s: %v", tt.input, parser.errors)
+			continue
+		}
+
+		callExpression, ok := expression.(*ast.CallExpression)
+		if !ok {
+			t.Fatalf("parseCallExpression() returned wrong type. Expected *ast.CallExpression, got %T", expression)
+		}
+
+		// 检查函数名
+		if callExpression.Function.String() != tt.expectedCallee {
+			t.Errorf("callExpression.Function.String() = %v, want %v for input %s", callExpression.Function.String(), tt.expectedCallee, tt.input)
+		}
+
+		// 检查参数数量
+		if len(callExpression.Arguments) != tt.expectedArgsCount {
+			t.Errorf("callExpr.Arguments length = %d, want %d for input %s", len(callExpression.Arguments), tt.expectedArgsCount, tt.input)
+		}
+	}
+}
