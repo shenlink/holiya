@@ -1401,3 +1401,97 @@ func TestParseFunctionLiteral(t *testing.T) {
 		}
 	}
 }
+
+// 测试 parseArrayLiteral 函数
+func TestParseArrayLiteral(t *testing.T) {
+	tests := []struct {
+		input          string
+		expectedValues []string
+		expectError    bool
+	}{
+		{
+			input:          "[]",
+			expectedValues: []string{},
+			expectError:    false,
+		},
+		{
+			input:          "[1]",
+			expectedValues: []string{"1"},
+			expectError:    false,
+		},
+		{
+			input:          "[1, 2, 3]",
+			expectedValues: []string{"1", "2", "3"},
+			expectError:    false,
+		},
+		{
+			input:          "[x, y, z]",
+			expectedValues: []string{"x", "y", "z"},
+			expectError:    false,
+		},
+		{
+			input:          "[1, true, false]",
+			expectedValues: []string{"1", "true", "false"},
+			expectError:    false,
+		},
+		{
+			input:          "[1 + 2, 3 * 4, 5 - 6]",
+			expectedValues: []string{"(1 + 2)", "(3 * 4)", "(5 - 6)"},
+			expectError:    false,
+		},
+		{
+			input:          "[fn(x) { x; }, 10]",
+			expectedValues: []string{"fn(x)x", "10"},
+			expectError:    false,
+		},
+		// 错误情况测试 - 缺少右括号
+		{
+			input:          "[1, 2, 3",
+			expectedValues: nil,
+			expectError:    true,
+		},
+		// 错误情况测试 - 缺少元素之间的逗号
+		{
+			input:          "[1 2]",
+			expectedValues: nil,
+			expectError:    true,
+		},
+	}
+
+	for _, tt := range tests {
+		l := lexer.New(tt.input)
+		parser := New(l)
+		result := parser.parseArrayLiteral()
+
+		if tt.expectError {
+			if len(parser.errors) == 0 {
+				t.Errorf("expected error for input %s, but got none", tt.input)
+			}
+			if result != nil {
+				t.Errorf("expected nil result for invalid input %s, but got %T", tt.input, result)
+			}
+			continue
+		}
+
+		// 验证没有错误
+		if len(parser.errors) > 0 {
+			t.Errorf("unexpected error for input %s: %v", tt.input, parser.errors)
+		}
+
+		arrayLiteral, ok := result.(*ast.ArrayLiteral)
+		if !ok {
+			t.Fatalf("parseArrayLiteral() returned wrong type. Expected *ast.ArrayLiteral, got %T", result)
+		}
+
+		if len(arrayLiteral.Elements) != len(tt.expectedValues) {
+			t.Errorf("arrayLiteral.Elements length = %d, want %d", len(arrayLiteral.Elements), len(tt.expectedValues))
+			continue
+		}
+
+		for i, expectedValue := range tt.expectedValues {
+			if arrayLiteral.Elements[i].String() != expectedValue {
+				t.Errorf("arrayLiteral.Elements[%d].String() = %v, want %v", i, arrayLiteral.Elements[i].String(), expectedValue)
+			}
+		}
+	}
+}

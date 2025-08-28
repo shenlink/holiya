@@ -516,7 +516,55 @@ func (p *Parser) parseFunctionParameters() []*ast.Identifier {
 
 // 解析数组
 func (p *Parser) parseArrayLiteral() ast.Expression {
-	return nil
+	// 创建数组表达式
+	arrayExpression := &ast.ArrayLiteral{Token: p.currToken}
+
+	// 解析表达式列表，以参数end作为标识
+	list := p.parseExpressionList(token.RBRACKET)
+	if list == nil {
+		return nil
+	}
+	arrayExpression.Elements = list
+
+	return arrayExpression
+}
+
+// 解析表达式列表，有数组和调用表达式的实参列表
+func (p *Parser) parseExpressionList(end token.TokenType) []ast.Expression {
+	// 创建一个空数组，用于存储表达式列表
+	list := []ast.Expression{}
+
+	// 下一个token是结束符，那就是没有[]或()中没有表达式，返回空表达式数组
+	if p.peekTokenIs(end) {
+		p.nextToken()
+		return list
+	}
+
+	// 跳过[或(
+	p.nextToken()
+
+	// 第一个表达式
+	expression := p.parseExpression(LOWEST)
+	list = append(list, expression)
+
+	// 如果下一个token是,，则继续解析下一个表达式
+	for p.peekTokenIs(token.COMMA) {
+		// 跳到,
+		p.nextToken()
+		// 调到下一个表达式所在的token
+		p.nextToken()
+		// 解析表达式
+		expression := p.parseExpression(LOWEST)
+		// 添加表达式
+		list = append(list, expression)
+	}
+
+	// 如果下一个token不是end，则记录错误并返回nil
+	if !p.expectPeek(end) {
+		return nil
+	}
+
+	return list
 }
 
 // 解析哈希（键值对）
