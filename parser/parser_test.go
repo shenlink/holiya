@@ -1704,3 +1704,98 @@ func TestParseCallExpression(t *testing.T) {
 		}
 	}
 }
+
+// 测试 parseIndexExpression 函数
+func TestParseIndexExpression(t *testing.T) {
+	tests := []struct {
+		input         string
+		expectedLeft  string
+		expectedIndex string
+		expectError   bool
+	}{
+		{
+			input:         "myArray[0];",
+			expectedLeft:  "myArray",
+			expectedIndex: "0",
+			expectError:   false,
+		},
+		{
+			input:         "myArray[x];",
+			expectedLeft:  "myArray",
+			expectedIndex: "x",
+			expectError:   false,
+		},
+		{
+			input:         "myArray[1 + 2];",
+			expectedLeft:  "myArray",
+			expectedIndex: "(1 + 2)",
+			expectError:   false,
+		},
+		{
+			input:         "myArray[0 + 1];",
+			expectedLeft:  "myArray",
+			expectedIndex: "(0 + 1)",
+			expectError:   false,
+		},
+		{
+			input:         "myArray[fn(x) { x; }];",
+			expectedLeft:  "myArray",
+			expectedIndex: "fn(x)x",
+			expectError:   false,
+		},
+		{
+			input:         "myArray[call(1, 2, 3)];",
+			expectedLeft:  "myArray",
+			expectedIndex: "call(1, 2, 3)",
+			expectError:   false,
+		},
+		// 错误情况测试 - 缺少右括号
+		{
+			input:         "myArray[0;",
+			expectedLeft:  "",
+			expectedIndex: "",
+			expectError:   true,
+		},
+	}
+
+	for _, tt := range tests {
+		l := lexer.New(tt.input)
+		parser := New(l)
+
+		// 解析整个表达式
+		expression := parser.parseExpression(LOWEST)
+
+		if tt.expectError {
+			if len(parser.errors) == 0 {
+				t.Errorf("expected error for input %s, but got none", tt.input)
+			}
+			if expression != nil {
+				t.Errorf("expected nil expression for invalid input %s, but got %T", tt.input, expression)
+			}
+			continue
+		}
+
+		// 验证没有错误
+		if len(parser.errors) > 0 {
+			t.Errorf("unexpected error for input %s: %v", tt.input, parser.errors)
+			continue
+		}
+
+		indexExpression, ok := expression.(*ast.IndexExpression)
+		if !ok {
+			t.Fatalf("parseIndexExpression() returned wrong type. Expected *ast.IndexExpression, got %T", expression)
+		}
+
+		// 检查左侧表达式
+		if indexExpression.Left.String() != tt.expectedLeft {
+			t.Errorf("indexExpression.Left.String() = %v, want %v for input %s",
+				indexExpression.Left.String(), tt.expectedLeft, tt.input)
+		}
+
+		// 检查索引表达式
+		if indexExpression.Index.String() != tt.expectedIndex {
+			t.Errorf("indexExpression.Index.String() = %v, want %v for input %s",
+				indexExpression.Index.String(), tt.expectedIndex, tt.input)
+		}
+	}
+}

@@ -647,7 +647,25 @@ func (p *Parser) parseCallExpression(function ast.Expression) ast.Expression {
 
 // 解析index表达式
 func (p *Parser) parseIndexExpression(left ast.Expression) ast.Expression {
-	return nil
+	// 创建索引表达式
+	indexExpression := &ast.IndexExpression{Token: p.currToken, Left: left}
+
+	// 跳过[
+	p.nextToken()
+
+	// 解析索引
+	index := p.parseExpression(LOWEST)
+	if index == nil {
+		return nil
+	}
+	indexExpression.Index = index
+
+	// 如果下一个token不是]，则记录错误并返回nil
+	if !p.expectPeek(token.RBRACKET) {
+		return nil
+	}
+
+	return indexExpression
 }
 
 // 获取下一个token，currToken指向下一个token，peekToken指向下两个token
