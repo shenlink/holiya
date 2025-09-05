@@ -314,6 +314,10 @@ func (p *Parser) parseIfExpression() ast.Expression {
 	if !p.expectPeek(token.LPAREN) {
 		return nil
 	}
+	// 跳过(，这里是因为 if() 中条件是独立的，不是 GroupExpression，
+	// GroupExpression 的解析函数里面最后跳过了)，这里又跳过了)，重复了，
+	// 所以跳过(，不进入 parseGroupExpression 函数
+	p.nextToken()
 	// 解析if()中的条件表达式
 	expression.Condition = p.parseExpression(LOWEST)
 	// 验证下一个token是不是)
