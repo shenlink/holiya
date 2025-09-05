@@ -297,9 +297,8 @@ func (p *Parser) parseGroupedExpression() ast.Expression {
 	// 解析括号中的表达式
 	expression := p.parseExpression(LOWEST)
 
-	// 如果不是以)结尾，则报错
-	if !p.peekTokenIs(token.RPAREN) {
-		p.errors = append(p.errors, "expected )")
+	// 如果是以)结尾，则跳过，否则记录错误，并返回nil
+	if !p.expectPeek(token.RPAREN) {
 		return nil
 	}
 
