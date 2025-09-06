@@ -35,8 +35,8 @@ var builtins = map[string]*object.Builtin{
 			for _, arg := range args {
 				fmt.Println(arg.Inspect())
 			}
-			// 返回 NULL 对象
-			return NULL
+			// 返回 nil，避免删除多余的 null 字符串
+			return nil
 		},
 	},
 
