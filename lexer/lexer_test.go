@@ -750,6 +750,7 @@ func TestIsEndSeparator(t *testing.T) {
 		{'a', false},
 		{'0', false},
 		{END, true},
+		{'\n', true},
 	}
 
 	for i, tt := range tests {

@@ -369,7 +369,7 @@ func (l *Lexer) readNumber() token.Token {
 //
 //	ch byte: 需要判断的字符
 func isEndSeparator(ch byte) bool {
-	return ch == ')' || ch == '}' || ch == ']' || ch == ',' || ch == ';' || ch == ':' || ch == ' ' || ch == END
+	return ch == ')' || ch == '}' || ch == ']' || ch == ',' || ch == ';' || ch == ':' || ch == ' ' || ch == END || ch == '\n'
 }
 
 // isSeparator 是否是分隔符
