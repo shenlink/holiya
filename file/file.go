@@ -6,8 +6,10 @@ import (
 	"io"
 	"os"
 
+	"holiya/evaluator"
 	"holiya/lexer"
-	"holiya/token"
+	"holiya/object"
+	"holiya/parser"
 )
 
 // ProcessFile 处理指定的文件，逐行读取内容
@@ -19,11 +21,23 @@ func ProcessFile(filename string, out io.Writer) error {
 	defer file.Close()
 
 	scanner := bufio.NewScanner(file)
+	env := object.NewEnvironment()
 	for scanner.Scan() {
 		line := scanner.Text()
 		l := lexer.New(line)
-		for tok := l.NextToken(); tok.Type != token.EOF; tok = l.NextToken() {
-			fmt.Fprintf(out, "%+v\n", tok)
+		p := parser.New(l)
+		program := p.ParseProgram()
+		if len(p.Errors()) != 0 {
+			io.WriteString(out, "parser errors:\n")
+			for _, msg := range p.Errors() {
+				io.WriteString(out, "\t"+msg+"\n")
+			}
+		}
+
+		evaluated := evaluator.Eval(program, env)
+		if evaluated != nil {
+			io.WriteString(out, evaluated.Inspect())
+			io.WriteString(out, "\n")
 		}
 	}
 
