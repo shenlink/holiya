@@ -980,6 +980,12 @@ func TestParseLetStatement(t *testing.T) {
 			expectedValue: "(!true)",
 			expectError:   false,
 		},
+		{
+			input:         "let add = fn (x, y) { return x + y;}",
+			expectedName:  "add",
+			expectedValue: "fn(x, y)return (x + y);",
+			expectError:   false,
+		},
 		// 错误情况测试 - 缺少标识符
 		{
 			input:         "let = 5;",
@@ -990,13 +996,6 @@ func TestParseLetStatement(t *testing.T) {
 		// 错误情况测试 - 缺少赋值操作符
 		{
 			input:         "let x 5;",
-			expectedName:  "",
-			expectedValue: "",
-			expectError:   true,
-		},
-		// 错误情况测试 - 缺少分号
-		{
-			input:         "let x = 5",
 			expectedName:  "",
 			expectedValue: "",
 			expectError:   true,
@@ -1868,12 +1867,6 @@ func TestParseProgram(t *testing.T) {
 		// 错误情况测试 - let语句缺少赋值操作符
 		{
 			input:              "let x 5;",
-			expectedStatements: []string{},
-			expectError:        true,
-		},
-		// 错误情况测试 - let语句缺少分号
-		{
-			input:              "let x = 5",
 			expectedStatements: []string{},
 			expectError:        true,
 		},

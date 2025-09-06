@@ -422,9 +422,9 @@ func (p *Parser) parseLetStatement() *ast.LetStatement {
 	// 解析表达式，并保存到statement中
 	statement.Value = p.parseExpression(LOWEST)
 
-	// 如果下一个token不是;，则记录错误并返回
-	if !p.expectPeek(token.SEMICOLON) {
-		return nil
+	// 如果下一个token是;，则跳过
+	if p.peekTokenIs(token.SEMICOLON) {
+		p.nextToken()
 	}
 
 	return statement
