@@ -212,7 +212,7 @@ func (p *Parser) parsePrefixExpression() ast.Expression {
 	p.nextToken()
 
 	// 解析 '!' 和 '-' 后面的表达式
-	expression.Right = p.parseExpression(LOWEST)
+	expression.Right = p.parseExpression(PREFIX)
 
 	return expression
 }
