@@ -619,6 +619,8 @@ func (p *Parser) parseHashLiteral() ast.Expression {
 			p.nextToken()
 		}
 	}
+	// 跳过}
+	p.nextToken()
 
 	return hashExpression
 }
