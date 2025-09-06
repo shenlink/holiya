@@ -29,7 +29,6 @@ func Eval(node ast.Node, env *object.Environment) object.Object {
 			return value
 		}
 		env.Set(node.Name.Value, value)
-		return value
 	case *ast.BlockStatement:
 		// 处理代码块语句
 		return evalBlockStatement(node, env)
