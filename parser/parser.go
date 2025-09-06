@@ -457,9 +457,9 @@ func (p *Parser) parseExpressionStatement() *ast.ExpressionStatement {
 	// 解析表达式
 	statement.Expression = p.parseExpression(LOWEST)
 
-	// 如果下一个token不是;，则记录错误并返回nil
-	if !p.expectPeek(token.SEMICOLON) {
-		return nil
+	// 如果下一个token;，则跳过
+	if p.peekTokenIs(token.SEMICOLON) {
+		p.nextToken()
 	}
 
 	return statement

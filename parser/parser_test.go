@@ -1213,12 +1213,6 @@ func TestParseExpressionStatement(t *testing.T) {
 			expectedExpression: "(x + (y * z))",
 			expectError:        false,
 		},
-		// 错误情况测试 - 缺少分号
-		{
-			input:              "x",
-			expectedExpression: "",
-			expectError:        true,
-		},
 	}
 
 	for _, tt := range tests {
@@ -1886,12 +1880,6 @@ func TestParseProgram(t *testing.T) {
 		// 错误情况测试 - return语句缺少分号
 		{
 			input:              "return 5",
-			expectedStatements: []string{},
-			expectError:        true,
-		},
-		// 错误情况测试 - 表达式语句缺少分号
-		{
-			input:              "x + y",
 			expectedStatements: []string{},
 			expectError:        true,
 		},
