@@ -1,8 +1,6 @@
 package file
 
 import (
-	"bufio"
-	"fmt"
 	"io"
 	"os"
 
@@ -14,35 +12,26 @@ import (
 
 // ProcessFile 处理指定的文件，逐行读取内容
 func ProcessFile(filename string, out io.Writer) error {
-	file, err := os.Open(filename)
+	data, err := os.ReadFile(filename)
 	if err != nil {
-		return fmt.Errorf("error opening file %s: %v", filename, err)
+		return err
 	}
-	defer file.Close()
-
-	scanner := bufio.NewScanner(file)
+	content := string(data)
 	env := object.NewEnvironment()
-	for scanner.Scan() {
-		line := scanner.Text()
-		l := lexer.New(line)
-		p := parser.New(l)
-		program := p.ParseProgram()
-		if len(p.Errors()) != 0 {
-			io.WriteString(out, "parser errors:\n")
-			for _, msg := range p.Errors() {
-				io.WriteString(out, "\t"+msg+"\n")
-			}
-		}
-
-		evaluated := evaluator.Eval(program, env)
-		if evaluated != nil {
-			io.WriteString(out, evaluated.Inspect())
-			io.WriteString(out, "\n")
+	l := lexer.New(content)
+	p := parser.New(l)
+	program := p.ParseProgram()
+	if len(p.Errors()) != 0 {
+		io.WriteString(out, "parser errors:\n")
+		for _, msg := range p.Errors() {
+			io.WriteString(out, "\t"+msg+"\n")
 		}
 	}
 
-	if err := scanner.Err(); err != nil {
-		return fmt.Errorf("error reading file %s: %v", filename, err)
+	evaluated := evaluator.Eval(program, env)
+	if evaluated != nil {
+		io.WriteString(out, evaluated.Inspect())
+		io.WriteString(out, "\n")
 	}
 
 	return nil
