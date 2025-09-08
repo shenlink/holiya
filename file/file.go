@@ -28,10 +28,12 @@ func ProcessFile(filename string, out io.Writer) error {
 		}
 	}
 
-	evaluated := evaluator.Eval(program, env)
-	if evaluated != nil {
-		io.WriteString(out, evaluated.Inspect())
-		io.WriteString(out, "\n")
+	for _, statement := range program.Statements {
+		evaluated := evaluator.Eval(statement, env)
+		if evaluated != nil {
+			io.WriteString(out, evaluated.Inspect())
+			io.WriteString(out, "\n")
+		}
 	}
 
 	return nil
