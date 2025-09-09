@@ -183,6 +183,7 @@ func (e *Error) Inspect() string {
 // 函数
 type Function struct {
 	Parameters []*ast.Identifier
+	Name       *ast.Identifier
 	Body       *ast.BlockStatement
 	// 函数的运行环境
 	Env *Environment

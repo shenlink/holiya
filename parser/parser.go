@@ -96,8 +96,6 @@ func New(l *lexer.Lexer) *Parser {
 	p.registerPrefix(token.LPAREN, p.parseGroupedExpression)
 	// 注册if的前缀表达式的解析函数
 	p.registerPrefix(token.IF, p.parseIfExpression)
-	// 注册函数的前缀表达式的解析函数
-	p.registerPrefix(token.FUNCTION, p.parseFunctionLiteral)
 	// 注册[的前缀表达式的解析函数
 	p.registerPrefix(token.LBRACKET, p.parseArrayLiteral)
 	// 注册{的前缀表达式的解析函数
@@ -392,6 +390,9 @@ func (p *Parser) parseStatement() ast.Statement {
 	case token.RETURN:
 		// 解析return语句
 		return p.parseReturnStatement()
+	case token.FUNCTION:
+		// 解析函数声明
+		return p.parseFunctionStatement()
 	default:
 		// 解析表达式语句
 		return p.parseExpressionStatement()
@@ -466,14 +467,20 @@ func (p *Parser) parseExpressionStatement() *ast.ExpressionStatement {
 }
 
 // 解析函数
-func (p *Parser) parseFunctionLiteral() ast.Expression {
-	// 创建函数表达式
-	fnExpression := &ast.FunctionLiteral{Token: p.currToken}
+func (p *Parser) parseFunctionStatement() ast.Statement {
+	// 创建函数语句
+	fnStatement := &ast.FunctionStatement{Token: p.currToken}
 
 	// 如果下一个token不是(，则记录错误并返回nil
 	if !p.expectPeek(token.LPAREN) {
 		return nil
 	}
+
+	if !p.expectPeek(token.IDENTIFIER) {
+		return nil
+	}
+
+	fnStatement.Name = &ast.Identifier{Token: p.currToken, Value: p.currToken.Literal}
 
 	// 解析函数的参数列表
 	parameters := p.parseFunctionParameters()
@@ -483,7 +490,7 @@ func (p *Parser) parseFunctionLiteral() ast.Expression {
 		return nil
 	}
 
-	fnExpression.Parameters = parameters
+	fnStatement.Parameters = parameters
 
 	// 如果下一个token不是{，则记录错误并返回nil
 	if !p.expectPeek(token.LBRACE) {
@@ -491,9 +498,9 @@ func (p *Parser) parseFunctionLiteral() ast.Expression {
 	}
 
 	// 解析函数的函数体
-	fnExpression.Body = p.parseBlockStatement()
+	fnStatement.Body = p.parseBlockStatement()
 
-	return fnExpression
+	return fnStatement
 }
 
 func (p *Parser) parseFunctionParameters() []*ast.Identifier {

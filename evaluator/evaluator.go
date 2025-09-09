@@ -67,11 +67,13 @@ func Eval(node ast.Node, env *object.Environment) object.Object {
 	case *ast.IfExpression:
 		// 处理 if 表达式
 		return evalIfExpression(node, env)
-	case *ast.FunctionLiteral:
+	case *ast.FunctionStatement:
 		// 处理函数字面量
+		name := node.Name.Value
+		env.Set(name, &object.String{Value: name})
 		params := node.Parameters
 		body := node.Body
-		return &object.Function{Parameters: params, Body: body, Env: env}
+		return &object.Function{Name: node.Name, Parameters: params, Body: body, Env: env}
 	case *ast.ArrayLiteral:
 		// 处理数组字面量
 		elements := evalExpressions(node.Elements, env)

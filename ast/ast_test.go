@@ -168,11 +168,11 @@ func TestPrefixExpression(t *testing.T) {
 	}
 }
 
-// 测试 FunctionLiteral
-func TestFunctionLiteral(t *testing.T) {
-	funcs := []expressions{
+// 测试 FunctionStatement
+func TestFunctionStatement(t *testing.T) {
+	funcs := []statements{
 		{
-			expression: &FunctionLiteral{
+			statement: &FunctionStatement{
 				Token:      token.Token{Type: token.FUNCTION, Literal: "fn"},
 				Parameters: []*Identifier{},
 				Body:       getBlockStatement(),
@@ -181,7 +181,7 @@ func TestFunctionLiteral(t *testing.T) {
 			expectedString:  "fn()let myVar = myVar;let myVar = 5;return 5;",
 		},
 		{
-			expression: &FunctionLiteral{
+			statement: &FunctionStatement{
 				Token: token.Token{Type: token.FUNCTION, Literal: "fn"},
 				Parameters: []*Identifier{
 					{
@@ -196,7 +196,7 @@ func TestFunctionLiteral(t *testing.T) {
 		},
 	}
 
-	if !testExpression(t, funcs) {
+	if !testStatement(t, funcs) {
 		return
 	}
 }

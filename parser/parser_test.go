@@ -980,12 +980,6 @@ func TestParseLetStatement(t *testing.T) {
 			expectedValue: "(!true)",
 			expectError:   false,
 		},
-		{
-			input:         "let add = fn (x, y) { return x + y;}",
-			expectedName:  "add",
-			expectedValue: "fn(x, y)return (x + y);",
-			expectError:   false,
-		},
 		// 错误情况测试 - 缺少标识符
 		{
 			input:         "let = 5;",
@@ -1280,8 +1274,8 @@ func TestErrors(t *testing.T) {
 	}
 }
 
-// 测试 parseFunctionLiteral 函数
-func TestParseFunctionLiteral(t *testing.T) {
+// 测试 parseFunctionStatement 函数
+func TestParseFunctionStatement(t *testing.T) {
 	tests := []struct {
 		input              string
 		expectedParameters []string
@@ -1355,7 +1349,7 @@ func TestParseFunctionLiteral(t *testing.T) {
 	for _, tt := range tests {
 		l := lexer.New(tt.input)
 		parser := New(l)
-		result := parser.parseFunctionLiteral()
+		result := parser.parseFunctionStatement()
 
 		if tt.expectError {
 			if len(parser.errors) == 0 {
@@ -1373,9 +1367,9 @@ func TestParseFunctionLiteral(t *testing.T) {
 			continue
 		}
 
-		functionLiteral, ok := result.(*ast.FunctionLiteral)
+		functionLiteral, ok := result.(*ast.FunctionStatement)
 		if !ok {
-			t.Fatalf("parseFunctionLiteral() returned wrong type. Expected *ast.FunctionLiteral, got %T", result)
+			t.Fatalf("parseFunctionStatement() returned wrong type. Expected *ast.FunctionStatement, got %T", result)
 		}
 
 		if len(functionLiteral.Parameters) != len(tt.expectedParameters) {

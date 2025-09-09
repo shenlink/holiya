@@ -182,25 +182,26 @@ func (p *PrefixExpression) String() string {
 	return out.String()
 }
 
-// FunctionLiteral 函数字面量节点，用于表示函数表达式
+// FunctionStatement 函数声明语句，用于声明函数
 // 包含函数参数和函数体
-type FunctionLiteral struct {
+type FunctionStatement struct {
 	// fn 关键字
 	Token      token.Token
+	Name       *Identifier
 	Parameters []*Identifier
 	Body       *BlockStatement
 }
 
 // expressionNode 实现了 Expression 接口的方法
-func (fl *FunctionLiteral) expressionNode() {}
+func (fl *FunctionStatement) statementNode() {}
 
 // TokenLiteral 实现了 Expression 接口的方法
-func (fl *FunctionLiteral) TokenLiteral() string {
+func (fl *FunctionStatement) TokenLiteral() string {
 	return fl.Token.Literal
 }
 
 // String 实现了 Expression 接口的方法
-func (fl *FunctionLiteral) String() string {
+func (fl *FunctionStatement) String() string {
 	var out bytes.Buffer
 
 	params := []string{}

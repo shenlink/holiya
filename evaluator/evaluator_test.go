@@ -226,10 +226,10 @@ func TestErrorHandling(t *testing.T) {
 			`"Hello" - "World"`,
 			"unknown operator: STRING - STRING",
 		},
-		{
-			`{"name": "Holiya"}[fn(x) { x }];`,
-			"unusable as hash key: FUNCTION",
-		},
+		// {
+		// 	`{"name": "Holiya"}[fn(x) { x }];`,
+		// 	"unusable as hash key: FUNCTION",
+		// },
 	}
 
 	for _, tt := range tests {
@@ -268,7 +268,7 @@ func TestLetStatements(t *testing.T) {
 // TestFunctionObject 测试函数对象的创建
 // 验证函数参数和函数体是否正确解析
 func TestFunctionObject(t *testing.T) {
-	input := "fn(x) { x + 2; };"
+	input := "fn add (x) { x + 2; }"
 
 	evaluated := testEval(input)
 	fn, ok := evaluated.(*object.Function)
@@ -298,12 +298,11 @@ func TestFunctionApplication(t *testing.T) {
 		input    string
 		expected int64
 	}{
-		{"let identity = fn(x) { x; }; identity(5);", 5},
-		{"let identity = fn(x) { return x; }; identity(5);", 5},
-		{"let double = fn(x) { x * 2; }; double(5);", 10},
-		{"let add = fn(x, y) { x + y; }; add(5, 5);", 10},
-		{"let add = fn(x, y) { x + y; }; add(5 + 5, add(5, 5));", 20},
-		{"fn(x) { x; }(5)", 5},
+		{"fn identify (x) { x; }; identity(5);", 5},
+		{"fn identity (x) { return x; }; identity(5);", 5},
+		{"fn double (x) { x * 2; }; double(5);", 10},
+		{"fn add (x, y) { x + y; }; add(5, 5);", 10},
+		{"fn add (x, y) { x + y; }; add(5 + 5, add(5, 5));", 20},
 	}
 
 	for _, tt := range tests {
